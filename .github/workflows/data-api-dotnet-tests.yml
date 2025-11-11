@@ -1,0 +1,43 @@
+name: Data API .NET Tests
+
+on:
+  push:
+    branches:
+      - '*'  # Any branch
+    paths:
+      - 'apps/data-api-dotnet/**'
+      - '.github/workflows/data-api-dotnet-tests.yml'
+
+jobs:
+  test:
+    name: Run Data API .NET Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        working-directory: apps/data-api-dotnet/tests
+        run: dotnet restore
+
+      - name: Build
+        working-directory: apps/data-api-dotnet/tests
+        run: dotnet build --no-restore
+        continue-on-error: false
+
+      - name: Run Data API .Net - DocumentTests
+        working-directory: apps/data-api-dotnet/tests
+        run: dotnet test --no-build --verbosity normal --filter "FullyQualifiedName~DocumentTests"
+        continue-on-error: false
+
+      - name: Run Unit Tests (Exclude Integration)
+        working-directory: apps/data-api-dotnet/tests
+        run: dotnet test --no-build --verbosity normal --filter "FullyQualifiedName!~ProgramTests"
+        continue-on-error: false
+
