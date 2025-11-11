@@ -5,7 +5,6 @@ using MedScribe.DataApi.Models;
 using MedScribe.DataApi.Observability;
 using Npgsql;
 using Prometheus;
-using Prometheus.AspNetCore;
 using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,8 +34,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 var app = builder.Build();
 
 // Metrics
-app.UseMetricServer("/metrics");
-app.UseHttpMetrics();
+app.MapMetrics("/metrics");
 
 // Swagger
 app.UseSwagger();
@@ -79,11 +77,11 @@ app.MapGet("/documents/{id:guid}/fields", async (Guid id, NpgsqlDataSource ds) =
 
 // List documents with filters and pagination
 app.MapGet("/documents", async (
-    string? status,
-    string? tenant,
+    NpgsqlDataSource ds,
+    string? status = null,
+    string? tenant = null,
     int page = 1,
-    int pageSize = 50,
-    NpgsqlDataSource ds) =>
+    int pageSize = 50) =>
 {
     page = Math.Max(1, page);
     pageSize = Math.Clamp(pageSize, 1, 500);

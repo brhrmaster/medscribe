@@ -5,9 +5,9 @@ ENV ASPNETCORE_URLS=http://+:8080
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["MedScribe.DataApi.csproj", "."]
+COPY ["src/MedScribe.DataApi.csproj", "."]
 RUN dotnet restore "MedScribe.DataApi.csproj"
-COPY . .
+COPY src/ .
 RUN dotnet build "MedScribe.DataApi.csproj" -c Release -o /app/build
 
 FROM build AS publish

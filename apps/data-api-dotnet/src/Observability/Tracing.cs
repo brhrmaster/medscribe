@@ -1,6 +1,8 @@
 using OpenTelemetry;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Resources;
+using OpenTelemetry.Instrumentation.AspNetCore;
+using OpenTelemetry.Instrumentation.Http;
 
 namespace MedScribe.DataApi.Observability;
 

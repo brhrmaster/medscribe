@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL 17
   postgres:
@@ -150,8 +148,8 @@ services:
   # Data API (.NET 8)
   data-api-dotnet:
     build:
-      context: ../apps/data-api-dotnet/src
-      dockerfile: Docker/Dockerfile
+      context: ../apps/data-api-dotnet
+      dockerfile: Dockerfile
     container_name: medscribe-data-api
     environment:
       ASPNETCORE_URLS: http://+:8080
