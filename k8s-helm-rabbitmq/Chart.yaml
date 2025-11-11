@@ -1,0 +1,12 @@
+apiVersion: v2
+name: rabbitmq
+description: Helm chart for RabbitMQ (using Bitnami chart as dependency)
+type: application
+version: 0.1.0
+appVersion: "4.0"
+
+dependencies:
+  - name: rabbitmq
+    version: 13.0.0
+    repository: https://charts.bitnami.com/bitnami
+

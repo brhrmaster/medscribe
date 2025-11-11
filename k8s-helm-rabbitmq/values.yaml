@@ -1,0 +1,15 @@
+rabbitmq:
+  auth:
+    username: user
+    password: CHANGE_ME
+  persistence:
+    enabled: true
+    size: 10Gi
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+
