@@ -6,7 +6,7 @@ on:
       - '*'  # Any branch
     paths:
       - 'apps/data-api-dotnet/**'
-      - '.github/workflows/data-api-dotnet-tests.yml'
+      - '.github/workflows/run-data-api-dotnet-tests.yml'
 
 jobs:
   test:
@@ -40,4 +40,3 @@ jobs:
         working-directory: apps/data-api-dotnet/tests
         run: dotnet test --no-build --verbosity normal --filter "FullyQualifiedName!~ProgramTests"
         continue-on-error: false
-

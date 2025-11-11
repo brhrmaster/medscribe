@@ -1,0 +1,39 @@
+name: Data API .NET Tests
+
+on:
+  push:
+    branches:
+      - '*'  # Any branch
+    paths:
+      - 'apps/upload-api/**'
+      - '.github/workflows/run-upload-api-tests.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          cd apps/upload-api
+          pip install -r requirements.txt
+        continue-on-error: false
+
+      - name: Run Integration Tests
+        working-directory: apps/upload-api
+        run: pytest tests/test_schemas.py tests/test_settings.py tests/integration/ -v
+        continue-on-error: false
+
+      - name: Run Unit Tests With Coverage
+        run: |
+          cd apps/upload-api
+          pytest --cov=src --cov-report=xml
+        continue-on-error: false
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./apps/upload-api/coverage.xml
