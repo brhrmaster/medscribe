@@ -69,6 +69,8 @@ MedScribe/
 ├─ k8s-helm-data-api-dotnet/     → Helm chart for Data API
 ├─ k8s-helm-rabbitmq/     → Helm chart for RabbitMQ broker
 ├─ docs/                  → Architecture diagrams, runbooks, and API contracts
+├─ integration-test/      → End-to-end integration test scripts
+├─ localhost/             → Docker Compose configuration for local development
 └─ tools/                 → Automation scripts and CI/CD utilities
 ```
 
@@ -90,12 +92,50 @@ helm upgrade --install rabbitmq ./k8s-helm-rabbitmq -n medscribe-infra
 
 ---
 
+### **Integration Tests**
+
+MedScribe includes comprehensive integration test scripts that validate the entire system end-to-end, from PDF upload through processing to data retrieval.
+
+**Quick Start:**
+
+```bash
+# Linux/Mac
+cd integration-test
+chmod +x exec-integration-test.sh
+./exec-integration-test.sh
+
+# Windows
+cd integration-test
+.\exec-integration-test.ps1
+```
+
+**What the Tests Cover:**
+
+The integration tests automatically:
+1. Start all services using Docker Compose (`localhost/docker-compose.yaml`)
+2. Validate service health and startup logs
+3. Upload a test PDF document (`integration-test/file-to-upload/laudo.pdf`)
+4. Monitor document processing through the pipeline
+5. Verify database records (documents and extracted fields)
+6. Query the Data API to retrieve processed data
+7. Validate end-to-end results
+8. Clean up test data
+
+**Test Scripts:**
+
+* `exec-integration-test.sh` - Bash script for Linux/Mac
+* `exec-integration-test.ps1` - PowerShell script for Windows
+
+Both scripts provide colored output, detailed progress reporting, and comprehensive error handling. See the [Integration Tests README](integration-test/README.md) for detailed documentation, troubleshooting, and prerequisites.
+
+---
+
 ### **Documentation**
 
 * [Architecture Overview](docs/architecture.md)
 * [Data Dictionary](docs/data-dictionary.md)
 * [API Contracts (OpenAPI)](docs/api-contracts.md)
-* [Runbooks & Ops Procedures](docs/ops-runbooks.md)
+* [Integration Tests](integration-test/README.md)
 
 ---
 
