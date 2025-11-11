@@ -1,0 +1,7 @@
+apiVersion: v2
+name: data-api-dotnet
+description: Helm chart for MedScribe Data API (.NET 8)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
