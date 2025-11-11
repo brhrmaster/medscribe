@@ -142,12 +142,59 @@ Both scripts provide colored output, detailed progress reporting, and comprehens
 
 ---
 
+### **Application Tests**
+
+Each application in the MedScribe system includes a comprehensive test suite following Test-Driven Development (TDD) best practices:
+
+#### **Upload API Tests** (`apps/upload-api/tests/`)
+FastAPI application tests using **pytest** with async support. Covers:
+- Unit tests for schemas, settings, S3 client, database client, and message queue publisher
+- Integration tests for FastAPI endpoints (`/upload`, `/healthz`)
+- Mocking strategies for external dependencies (S3, PostgreSQL, RabbitMQ)
+- **See:** [Upload API Tests README](apps/upload-api/tests/README.md)
+
+#### **Doc Worker Tests** (`apps/doc-worker/tests/`)
+Celery worker pipeline tests using **pytest**. Covers:
+- Unit tests for models, settings, PDF loader, rasterizer, image preprocessing, OCR/HTR functions, field extraction, and database persistence
+- Integration tests for the complete document processing pipeline
+- Mocking strategies for OCR libraries (Tesseract), PDF processing (PyMuPDF), and async database operations
+- **See:** [Doc Worker Tests README](apps/doc-worker/tests/README.md)
+
+#### **Data API .NET Tests** (`apps/data-api-dotnet/tests/`)
+ASP.NET Core API tests using **xUnit** and **FluentAssertions**. Covers:
+- Unit tests for models, data access layer, and SQL query validation
+- Integration tests for REST endpoints with `WebApplicationFactory`
+- Custom attributes for conditional test execution (database availability checks)
+- **See:** [Data API .NET Tests README](apps/data-api-dotnet/tests/README.md)
+
+**Running Tests:**
+
+```bash
+# Upload API
+cd apps/upload-api
+pytest --cov=src --cov-report=term-missing
+
+# Doc Worker
+cd apps/doc-worker
+pytest --cov=src --cov-report=term-missing
+
+# Data API .NET
+cd apps/data-api-dotnet/tests
+dotnet test --collect:"XPlat Code Coverage"
+```
+
+---
+
 ### **Documentation**
 
 * [Architecture Overview](docs/architecture.md)
 * [Data Dictionary](docs/data-dictionary.md)
 * [API Contracts (OpenAPI)](docs/api-contracts.md)
 * [Integration Tests](integration-test/README.md)
+* **Application Tests:**
+  * [Upload API Tests](apps/upload-api/tests/README.md)
+  * [Doc Worker Tests](apps/doc-worker/tests/README.md)
+  * [Data API .NET Tests](apps/data-api-dotnet/tests/README.md)
 
 ---
 
