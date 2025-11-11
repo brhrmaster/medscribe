@@ -1,0 +1,47 @@
+image:
+  repository: registry.digitalocean.com/org/upload-api
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: upload.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: upload-tls
+      hosts:
+        - upload.example.com
+
+env:
+  S3_ENDPOINT: "https://nyc3.digitaloceanspaces.com"
+  S3_BUCKET: "medical-reports"
+  S3_REGION: "nyc3"
+  RABBITMQ_URI: "amqp://user:pass@rabbitmq.default.svc.cluster.local:5672/"
+  TENANT_DEFAULT: "default"
+  MAX_FILE_SIZE_MB: "50"
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: 80
+

@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "upload-api.fullname" . }}
+  labels:
+    {{- include "upload-api.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "upload-api.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "upload-api.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: upload-api
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: S3_ENDPOINT
+              value: {{ .Values.env.S3_ENDPOINT | quote }}
+            - name: S3_BUCKET
+              value: {{ .Values.env.S3_BUCKET | quote }}
+            - name: S3_REGION
+              value: {{ .Values.env.S3_REGION | quote }}
+            - name: S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "upload-api.fullname" . }}-secrets
+                  key: S3_ACCESS_KEY
+            - name: S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "upload-api.fullname" . }}-secrets
+                  key: S3_SECRET_KEY
+            - name: RABBITMQ_URI
+              value: {{ .Values.env.RABBITMQ_URI | quote }}
+            - name: TENANT_DEFAULT
+              value: {{ .Values.env.TENANT_DEFAULT | quote }}
+            - name: MAX_FILE_SIZE_MB
+              value: {{ .Values.env.MAX_FILE_SIZE_MB | quote }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+
