@@ -37,13 +37,22 @@ Built on top of **DigitalOcean Kubernetes (DOKS)**, it leverages **microservice 
 
 ### **Tech Stack**
 
-* **Language:** Python 3.12
-* **Frameworks:** FastAPI, Celery
-* **AI/ML:** Tesseract OCR, TrOCR (Hugging Face ONNX Runtime), OpenCV
-* **Storage:** DigitalOcean Spaces (S3), PostgreSQL (Managed)
+* **Languages:** Python 3.12, C# (.NET 8.0)
+* **Frameworks:** FastAPI, Celery, ASP.NET Core
+* **AI/ML:** Tesseract OCR, TrOCR (Hugging Face ONNX Runtime), OpenCV, Transformers, SentencePiece
+* **PDF Processing:** PyMuPDF (fitz), pdf2image, Poppler
+* **Image Processing:** Pillow, NumPy
+* **Storage:** DigitalOcean Spaces (S3), PostgreSQL 17, MinIO (local dev)
+* **Database Libraries:** asyncpg, Npgsql, SQLAlchemy, Alembic, Dapper
 * **Messaging:** RabbitMQ
-* **Deployment:** Kubernetes (DOKS) + Helm + KEDA
-* **Observability:** Prometheus, Grafana, Loki, OpenTelemetry
+* **Data Validation:** Pydantic, Pydantic Settings
+* **JSON Processing:** orjson
+* **Retry Logic:** Tenacity
+* **Cloud SDKs:** boto3 (AWS SDK for Python)
+* **API Documentation:** Swagger/OpenAPI (Swashbuckle for .NET)
+* **Web Servers:** Uvicorn (ASGI)
+* **Deployment:** Kubernetes (DOKS) + Helm + KEDA, Docker, Docker Compose
+* **Observability:** Prometheus, Grafana, Loki, OpenTelemetry, prometheus-net
 
 ---
 
