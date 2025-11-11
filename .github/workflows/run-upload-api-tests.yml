@@ -1,4 +1,4 @@
-name: Data API .NET Tests
+name: Upload API Tests
 
 on:
   push:
