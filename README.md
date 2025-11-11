@@ -57,10 +57,10 @@ MedScribe/
 ├─ apps/
 │  ├─ upload-api/         → PDF ingestion and queuing
 │  ├─ doc-worker/         → OCR/HTR processing pipeline
-│  └─ data-api/           → Data access and integration layer
+│  └─ data-api-dotnet/           → Data access and integration layer
 ├─ k8s-helm-upload-api/   → Helm chart for Upload API
 ├─ k8s-helm-doc-worker/   → Helm chart for Worker + KEDA scaling
-├─ k8s-helm-data-api/     → Helm chart for Data API
+├─ k8s-helm-data-api-dotnet/     → Helm chart for Data API
 ├─ k8s-helm-rabbitmq/     → Helm chart for RabbitMQ broker
 ├─ docs/                  → Architecture diagrams, runbooks, and API contracts
 └─ tools/                 → Automation scripts and CI/CD utilities
@@ -76,9 +76,10 @@ docker build -t registry.digitalocean.com/org/medscribe-upload-api:1.0.0 apps/up
 docker push registry.digitalocean.com/org/medscribe-upload-api:1.0.0
 
 # Install via Helm
-helm upgrade --install upload-api ./k8s-helm-upload-api -n medscribe
-helm upgrade --install doc-worker ./k8s-helm-doc-worker -n medscribe
-helm upgrade --install data-api  ./k8s-helm-data-api  -n medscribe
+helm upgrade --install upload-api ./k8s-helm-upload-api -n medscribe-apps
+helm upgrade --install doc-worker ./k8s-helm-doc-worker -n medscribe-apps
+helm upgrade --install data-api-dotnet ./k8s-helm-data-api-dotnet ./k8s-helm-data-api-dotnet -n medscribe-apps
+helm upgrade --install rabbitmq ./k8s-helm-rabbitmq -n medscribe-infra
 ```
 
 ---
