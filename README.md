@@ -7,6 +7,12 @@ Built on top of **DigitalOcean Kubernetes (DOKS)**, it leverages **microservice 
 
 ---
 
+### **Architecture Overview**
+
+![Architecture Diagram](./docs/architecture-diagram.png)
+
+---
+
 ### **Core Capabilities**
 
 * **Smart ingestion pipeline:** Receives and validates scanned PDFs uploaded by users or integrated systems.
