@@ -1,0 +1,22 @@
+{{- if .Values.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "doc-worker.fullname" . }}
+  labels:
+    {{- include "doc-worker.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    name: {{ include "doc-worker.fullname" . }}
+  minReplicaCount: {{ .Values.keda.minReplicaCount }}
+  maxReplicaCount: {{ .Values.keda.maxReplicaCount }}
+  cooldownPeriod: {{ .Values.keda.cooldownPeriod }}
+  triggers:
+    - type: rabbitmq
+      metadata:
+        queueName: {{ .Values.keda.queueName }}
+        host: {{ .Values.env.RABBITMQ_URI | quote }}
+        mode: QueueLength
+        value: "{{ .Values.keda.queueLength }}"
+{{- end }}
+

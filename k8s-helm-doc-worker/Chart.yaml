@@ -1,0 +1,7 @@
+apiVersion: v2
+name: doc-worker
+description: Helm chart for MedScribe Doc Worker (Celery + KEDA)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
