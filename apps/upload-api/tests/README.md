@@ -241,53 +241,27 @@ If coverage reports are empty, ensure `pytest-cov` is installed:
 pip install pytest-cov
 ```
 
-## Continuous Integration
-
-Tests are designed to run in CI/CD pipelines without requiring external services. All external dependencies are mocked, making tests fast and reliable.
-
-### Example GitHub Actions Workflow
-
-```yaml
-name: Upload API Tests
-
-on: [push, pull_request]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-      - name: Install dependencies
-        run: |
-          cd apps/upload-api
-          pip install -r requirements.txt
-      - name: Run tests
-        run: |
-          cd apps/upload-api
-          pytest --cov=src --cov-report=xml
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./apps/upload-api/coverage.xml
-```
-
 ## Test Output Examples
 
 ### Successful Test Run
 
 ```
-============================= test session starts =============================
-platform win32 -- Python 3.12.7, pytest-8.0.0
-collected 7 items
-
-tests/test_schemas.py::TestUploadResponse::test_upload_response_should_have_required_fields PASSED [ 14%]
-tests/test_schemas.py::TestUploadResponse::test_upload_response_should_auto_generate_created_at PASSED [ 28%]
+=================================== test session starts ====================================
+platform win32 -- Python 3.12.7, pytest-9.0.0, pluggy-1.6.0
+cachedir: .pytest_cache
 ...
+collected 43 items                                                                                                        
 
-======================== 7 passed in 0.22s ========================
+tests/integration/test_main.py::TestHealthEndpoint::test_healthz_should_return_ok PASSED                            [  2%]
+tests/integration/test_main.py::TestHealthEndpoint::test_healthz_should_have_correct_structure PASSED               [  4%]
+tests/integration/test_main.py::TestUploadEndpoint::test_upload_should_accept_valid_pdf PASSED                      [  6%]
+...
+tests/test_settings.py::TestSettings::test_settings_should_have_default_values PASSED                               [ 93%] 
+tests/test_settings.py::TestSettings::test_settings_should_require_required_fields PASSED                           [ 95%] 
+tests/test_settings.py::TestSettings::test_settings_should_accept_custom_max_file_size PASSED                       [ 97%] 
+tests/test_settings.py::TestSettings::test_settings_should_have_pdf_in_allowed_content_types PASSED                 [100%] 
+
+============================= 43 passed, 84 warnings in 1.00s ==============================
 ```
 
 ### With Coverage
@@ -296,10 +270,13 @@ tests/test_schemas.py::TestUploadResponse::test_upload_response_should_auto_gene
 ---------- coverage: platform win32, python 3.12.7 -----------
 Name                  Stmts   Miss  Cover   Missing
 ---------------------------------------------------
-src/schemas.py           12      0   100%
-src/settings.py          20     20     0%   2-38
-...
+src\db_client.py         29      0   100%
+src\main.py              50      4    92%   60-62, 86
+src\mq_publisher.py      21      0   100%
+src\s3_client.py         26      0   100%
+src\schemas.py           12      0   100%
+src\settings.py          20      0   100%
 ---------------------------------------------------
-TOTAL                   158    146     8%
+TOTAL                   158      4    97%
 ```
 
