@@ -121,3 +121,5 @@ app.MapGet("/documents", async (
 
 app.Run();
 
+// Make Program class available for testing
+public partial class Program { }
