@@ -56,10 +56,16 @@ The scripts will output:
 - Test summary with pass/fail counts
 - Total execution time
 
+![Integration Tests Results](../docs/integration-test-results.png)
+
 ## Exit Codes
 
 - `0`: All tests passed
 - `1`: One or more tests failed
+
+## Localhost S3 Bucket with Minio
+
+![Localhost Bucket with Minio](../docs/local-bucket.png)
 
 ## Troubleshooting
 

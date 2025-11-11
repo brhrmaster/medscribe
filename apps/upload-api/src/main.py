@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from .settings import settings
 from .s3_client import s3_client
 from .mq_publisher import mq_publisher
+from .db_client import db_client
 from .schemas import UploadResponse, HealthResponse
 
 # Configurar logging
@@ -21,6 +22,12 @@ app = FastAPI(
     description="API para upload de documentos médicos (PDFs)",
     version=settings.app_version
 )
+
+
+@app.on_event("startup")
+async def startup():
+    """Inicializa conexões ao iniciar a aplicação."""
+    await db_client.initialize()
 
 
 @app.get("/healthz", response_model=HealthResponse)
@@ -74,6 +81,10 @@ async def upload(file: UploadFile = File(...)):
     if not s3_client.put_object(object_key, data, content_type=file.content_type):
         raise HTTPException(status_code=500, detail="Erro ao armazenar arquivo no Spaces")
     
+    # Criar documento no banco de dados
+    if not await db_client.create_document(document_id, tenant, object_key, sha256):
+        logger.warning(f"Documento {document_id} não pôde ser criado no banco (pode já existir)")
+    
     # Publicar mensagem no RabbitMQ
     message = {
         "document_id": document_id,
@@ -101,6 +112,7 @@ async def upload(file: UploadFile = File(...)):
 @app.on_event("shutdown")
 async def shutdown():
     """Cleanup ao encerrar a aplicação."""
+    await db_client.close()
     mq_publisher.close()
     logger.info("Upload API encerrada")
 

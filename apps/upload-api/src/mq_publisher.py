@@ -1,6 +1,5 @@
-"""Publicador de mensagens para RabbitMQ."""
-import pika
-import json
+"""Publicador de mensagens para RabbitMQ usando Celery."""
+from celery import Celery
 import logging
 from typing import Dict, Any
 from .settings import settings
@@ -9,31 +8,29 @@ logger = logging.getLogger(__name__)
 
 
 class MQPublisher:
-    """Publicador de mensagens para fila RabbitMQ."""
+    """Publicador de mensagens para fila RabbitMQ via Celery."""
     
     def __init__(self):
-        """Inicializa a conexão com RabbitMQ."""
-        self.connection = None
-        self.channel = None
-        self.queue_name = "process_document"
-        self._connect()
-    
-    def _connect(self):
-        """Estabelece conexão com RabbitMQ."""
-        try:
-            self.connection = pika.BlockingConnection(
-                pika.URLParameters(settings.rabbitmq_uri)
-            )
-            self.channel = self.connection.channel()
-            self.channel.queue_declare(queue=self.queue_name, durable=True)
-            logger.info(f"Conectado ao RabbitMQ, fila: {self.queue_name}")
-        except Exception as e:
-            logger.error(f"Erro ao conectar ao RabbitMQ: {e}")
-            raise
+        """Inicializa o cliente Celery."""
+        self.celery_app = Celery(
+            'upload_api',
+            broker=settings.rabbitmq_uri,
+            backend='rpc://',
+        )
+        self.celery_app.conf.update(
+            task_serializer='json',
+            accept_content=['json'],
+            result_serializer='json',
+            task_default_queue='process_document',
+            task_routes={
+                'process_document': {'queue': 'process_document'},
+            },
+        )
+        logger.info("Cliente Celery inicializado")
     
     def publish_message(self, message: Dict[str, Any]) -> bool:
         """
-        Publica uma mensagem na fila.
+        Publica uma mensagem na fila via Celery.
         
         Args:
             message: Dicionário com dados da mensagem
@@ -42,27 +39,21 @@ class MQPublisher:
             True se sucesso, False caso contrário
         """
         try:
-            if not self.channel or self.channel.is_closed:
-                self._connect()
-            
-            self.channel.basic_publish(
-                exchange='',
-                routing_key=self.queue_name,
-                body=json.dumps(message),
-                properties=pika.BasicProperties(
-                    delivery_mode=2,  # Torna a mensagem persistente
-                )
+            # Chamar a task do worker
+            self.celery_app.send_task(
+                'process_document',
+                args=[message],
+                queue='process_document',
             )
-            logger.info(f"Mensagem publicada: {message.get('document_id')}")
+            logger.info(f"Task enfileirada: {message.get('document_id')}")
             return True
         except Exception as e:
-            logger.error(f"Erro ao publicar mensagem: {e}")
+            logger.error(f"Erro ao enfileirar task: {e}")
             return False
     
     def close(self):
-        """Fecha a conexão."""
-        if self.connection and not self.connection.is_closed:
-            self.connection.close()
+        """Cleanup (não necessário para Celery client)."""
+        pass
 
 
 # Instância global

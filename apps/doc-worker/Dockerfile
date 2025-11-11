@@ -27,5 +27,5 @@ ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata
 EXPOSE 8080
 
 # Comando para iniciar o worker
-CMD ["celery", "-A", "src.worker", "worker", "--loglevel=info", "--concurrency=4"]
+CMD ["celery", "-A", "src.worker", "worker", "--loglevel=info", "--concurrency=4", "-Q", "process_document"]
 

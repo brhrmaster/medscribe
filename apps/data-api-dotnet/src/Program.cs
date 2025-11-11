@@ -69,7 +69,11 @@ app.MapGet("/documents/{id:guid}/fields", async (Guid id, NpgsqlDataSource ds) =
     using var conn = await ds.OpenConnectionAsync();
     var fields = await conn.QueryAsync<DocumentField>(SqlQueries.GetDocumentFields, new { documentId = id });
     
-    return Results.Ok(fields);
+    // Log para debug
+    var fieldsList = fields.ToList();
+    Console.WriteLine($"Found {fieldsList.Count} fields for document {id}");
+    
+    return Results.Ok(fieldsList);
 })
 .WithName("GetDocumentFields")
 .WithTags("Documents")

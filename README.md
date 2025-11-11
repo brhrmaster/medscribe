@@ -10,6 +10,7 @@ Built on top of **DigitalOcean Kubernetes (DOKS)**, it leverages **microservice 
 ### **Architecture Overview**
 
 ![Architecture Diagram](./docs/architecture-diagram.png)
+[View on Eraser.io](https://app.eraser.io/workspace/7m6AQymLmmVPOItrSCPB)
 
 ---
 
@@ -95,6 +96,8 @@ helm upgrade --install rabbitmq ./k8s-helm-rabbitmq -n medscribe-infra
 ### **Integration Tests**
 
 MedScribe includes comprehensive integration test scripts that validate the entire system end-to-end, from PDF upload through processing to data retrieval.
+
+![Integration Tests Results](./docs/integration-test-results.png)
 
 **Quick Start:**
 

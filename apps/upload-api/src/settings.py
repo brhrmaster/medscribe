@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     # RabbitMQ
     rabbitmq_uri: str
     
+    # PostgreSQL
+    database_url: str
+    
     # App
     tenant_default: str = "default"
     app_name: str = "medscribe-upload-api"

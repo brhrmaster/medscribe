@@ -10,7 +10,18 @@ public static class SqlQueries
     """;
 
     public const string GetDocumentFields = """
-        SELECT id, document_id, field_name, field_value, confidence, page, bbox, created_at
+        SELECT 
+            id AS Id,
+            document_id AS DocumentId,
+            field_name AS FieldName,
+            field_value AS FieldValue,
+            CASE 
+                WHEN confidence > 1 THEN confidence / 100.0 
+                ELSE confidence 
+            END AS Confidence,
+            page AS Page,
+            bbox AS Bbox,
+            created_at AS CreatedAt
         FROM document_fields
         WHERE document_id = @documentId
         ORDER BY field_name, page

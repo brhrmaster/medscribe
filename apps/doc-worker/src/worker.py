@@ -39,6 +39,10 @@ celery_app.conf.update(
     enable_utc=True,
     worker_prefetch_multiplier=1,
     worker_max_tasks_per_child=50,
+    task_default_queue='process_document',
+    task_routes={
+        'src.worker.process_document': {'queue': 'process_document'},
+    },
 )
 
 # Inicializar pool de conexões uma vez
@@ -60,7 +64,7 @@ def ensure_persistence_initialized():
         _persistence_initialized = True
 
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=60)
+@celery_app.task(name='process_document', bind=True, max_retries=3, default_retry_delay=60)
 def process_document(self, message: dict):
     """
     Task principal para processar um documento.
@@ -133,13 +137,20 @@ def process_document(self, message: dict):
             
             # OCR impresso
             printed_text, printed_conf = ocr_printed(processed_img)
+            logger.info(f"OCR página {page_num}: {len(printed_text)} caracteres extraídos, confiança: {printed_conf:.2f}")
+            if printed_text:
+                logger.debug(f"Texto OCR (primeiros 200 chars): {printed_text[:200]}")
             
             # HTR manuscrito (se habilitado)
             handwritten_text, handwritten_conf = htr_handwritten(processed_img)
+            if handwritten_text:
+                logger.info(f"HTR página {page_num}: {len(handwritten_text)} caracteres extraídos")
             
             # Combinar textos
             combined_text = f"{printed_text}\n{handwritten_text}".strip()
             combined_conf = max(printed_conf, handwritten_conf) if handwritten_conf > 0 else printed_conf
+            
+            logger.info(f"Texto combinado página {page_num}: {len(combined_text)} caracteres")
             
             # Mapear campos
             fields = field_mapper.extract_fields(
@@ -147,6 +158,10 @@ def process_document(self, message: dict):
                 page=page_num,
                 confidence=combined_conf
             )
+            logger.info(f"Campos extraídos página {page_num}: {len(fields)}")
+            if fields:
+                for field in fields:
+                    logger.info(f"  - {field.field_name}: {field.field_value} (conf: {field.confidence:.2f})")
             all_fields.extend(fields)
         
         # 4. Persistir campos

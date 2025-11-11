@@ -220,10 +220,18 @@ main() {
         log_success "Document found in database with status DONE"
         
         FIELDS_COUNT=$(docker exec "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -t -c \
-            "SELECT COUNT(*) FROM document_fields WHERE document_id = '$DOCUMENT_ID';" 2>/dev/null | tr -d ' ' | tr -d '\n')
+            "SELECT COUNT(*) FROM document_fields WHERE document_id = '$DOCUMENT_ID';" 2>/dev/null | tr -d ' ' | tr -d '\n' | tr -d '\r')
         
-        if [ -n "$FIELDS_COUNT" ] && [ "$FIELDS_COUNT" -gt "0" ]; then
-            log_success "Found $FIELDS_COUNT extracted fields in database"
+        # Ensure FIELDS_COUNT is a valid number
+        if [ -z "$FIELDS_COUNT" ]; then
+            FIELDS_COUNT=0
+        fi
+        
+        # Convert to integer for comparison (handle any non-numeric characters)
+        FIELDS_COUNT_INT=$((FIELDS_COUNT + 0))
+        
+        if [ "$FIELDS_COUNT_INT" -gt 0 ]; then
+            log_success "Found $FIELDS_COUNT_INT extracted fields in database"
         else
             log_warning "No fields found in database (may be normal if OCR didn't extract fields)"
         fi
@@ -260,11 +268,22 @@ main() {
     
     if [ "$FIELDS_HTTP_CODE" = "200" ]; then
         log_success "Document fields retrieved from Data API (HTTP $FIELDS_HTTP_CODE)"
-        FIELDS_COUNT_API=$(echo "$FIELDS_BODY" | python3 -c "import sys, json; print(len(json.load(sys.stdin)))" 2>/dev/null || echo "0")
-        log_info "Fields count from API: $FIELDS_COUNT_API"
-        if [ "$FIELDS_COUNT_API" -gt "0" ]; then
+        FIELDS_COUNT_API=$(echo "$FIELDS_BODY" | python3 -c "import sys, json; data=json.load(sys.stdin); print(len(data) if isinstance(data, list) else 0)" 2>/dev/null || echo "0")
+        
+        # Ensure FIELDS_COUNT_API is a valid number
+        if [ -z "$FIELDS_COUNT_API" ]; then
+            FIELDS_COUNT_API=0
+        fi
+        
+        # Convert to integer for comparison
+        FIELDS_COUNT_API_INT=$((FIELDS_COUNT_API + 0))
+        
+        log_info "Fields count from API: $FIELDS_COUNT_API_INT"
+        if [ "$FIELDS_COUNT_API_INT" -gt 0 ]; then
             echo "Sample fields:"
             echo "$FIELDS_BODY" | python3 -m json.tool 2>/dev/null | head -20 || echo "$FIELDS_BODY" | head -20
+        else
+            log_warning "No fields returned from API (may be normal if no fields were extracted)"
         fi
     else
         log_warning "Failed to retrieve fields (HTTP $FIELDS_HTTP_CODE) - may be normal if no fields extracted"
@@ -274,10 +293,18 @@ main() {
     # Step 9: Validate results
     log_info "Step 9: Validating results..."
     
+    # Validation passes if document was retrieved and status is DONE
+    # Fields extraction is optional (may not extract fields from all documents)
     if [ "$DOC_HTTP_CODE" = "200" ] && [ "$DB_CHECK" = "1" ]; then
         log_success "Integration test validation passed"
     else
         log_error "Integration test validation failed"
+        if [ "$DOC_HTTP_CODE" != "200" ]; then
+            log_error "  - Document retrieval failed (HTTP $DOC_HTTP_CODE)"
+        fi
+        if [ "$DB_CHECK" != "1" ]; then
+            log_error "  - Document not found in database or status is not DONE"
+        fi
     fi
     echo ""
     

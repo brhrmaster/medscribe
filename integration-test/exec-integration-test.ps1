@@ -250,7 +250,8 @@ function Main {
         
         $fieldsCount = Invoke-PostgresQuery "SELECT COUNT(*) FROM document_fields WHERE document_id = '$documentId';"
         
-        if ($fieldsCount -and [int]$fieldsCount -gt 0) {
+        $fieldsCountInt = if ($fieldsCount -is [array]) { $fieldsCount.Count } else { [int]$fieldsCount }
+        if ($fieldsCountInt -gt 0) {
             Write-Success "Found $fieldsCount extracted fields in database"
         } else {
             Write-Warning "No fields found in database (may be normal if OCR didn't extract fields)"
