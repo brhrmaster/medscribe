@@ -26,7 +26,12 @@ class Settings(BaseSettings):
     
     # Upload limits
     max_file_size_mb: int = 50
-    allowed_content_types: list[str] = ["application/pdf"]
+    allowed_content_types: list[str] = [
+        "application/pdf",
+        "image/png",
+        "image/jpeg",
+        "image/jpg"
+    ]
     
     class Config:
         env_file = ".env"

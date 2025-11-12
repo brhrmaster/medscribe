@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="MedScribe Upload API",
-    description="API para upload de documentos médicos (PDFs)",
+    description="API para upload de documentos médicos (PDFs e imagens PNG/JPEG)",
     version=settings.app_version
 )
 
@@ -43,9 +43,9 @@ async def healthz():
 @app.post("/upload", response_model=UploadResponse, status_code=202)
 async def upload(file: UploadFile = File(...)):
     """
-    Endpoint para upload de PDF.
+    Endpoint para upload de documentos médicos.
     
-    Recebe um arquivo PDF, valida, armazena no Spaces e enfileira para processamento.
+    Recebe um arquivo (PDF ou imagem PNG/JPEG), valida, armazena no Spaces e enfileira para processamento.
     """
     # Validação de tipo de conteúdo
     if file.content_type not in settings.allowed_content_types:
@@ -74,8 +74,17 @@ async def upload(file: UploadFile = File(...)):
     sha256 = hashlib.sha256(data).hexdigest()
     tenant = settings.tenant_default
     
-    # Chave no S3: {tenant}/{document_id}.pdf
-    object_key = f"{tenant}/{document_id}.pdf"
+    # Determinar extensão baseada no content_type
+    extension_map = {
+        "application/pdf": "pdf",
+        "image/png": "png",
+        "image/jpeg": "jpg",
+        "image/jpg": "jpg"
+    }
+    extension = extension_map.get(file.content_type, "bin")
+    
+    # Chave no S3: {tenant}/{document_id}.{ext}
+    object_key = f"{tenant}/{document_id}.{extension}"
     
     # Armazenar no Spaces
     if not s3_client.put_object(object_key, data, content_type=file.content_type):

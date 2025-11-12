@@ -62,7 +62,12 @@ class TestSettings:
         assert settings.app_name == "medscribe-upload-api"
         assert settings.app_version == "1.0.0"
         assert settings.max_file_size_mb == 50
-        assert settings.allowed_content_types == ["application/pdf"]
+        assert settings.allowed_content_types == [
+            "application/pdf",
+            "image/png",
+            "image/jpeg",
+            "image/jpg",
+        ]
     
     def test_settings_should_require_required_fields(self, monkeypatch):
         """Test that Settings requires all mandatory fields."""
