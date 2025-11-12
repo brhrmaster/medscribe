@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     raster_dpi: int = 300
     ocr_langs: str = "por+eng"
     htr_onnx_enable: bool = False
+    htr_onnx_encoder_path: str = "/models/trocr-encoder.onnx"
+    htr_onnx_decoder_path: str = "/models/trocr-decoder.onnx"
+    htr_onnx_tokenizer_name: str = "microsoft/trocr-base-handwritten"
+    htr_onnx_image_size: int = 384
+    htr_onnx_max_length: int = 256
+    htr_onnx_beam_size: int = 5
     confidence_threshold: float = 0.8
     model_version: str = "1.0.0"
     

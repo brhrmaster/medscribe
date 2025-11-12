@@ -6,7 +6,7 @@ import asyncio
 from celery import Celery
 from celery.exceptions import Retry
 from .settings import settings
-from .pipeline.pdf_loader import pdf_loader
+from .pipeline.file_loader import file_loader
 from .pipeline.rasterizer import rasterizer
 from .pipeline.preprocess import preprocess_image
 from .pipeline.ocr_printed import ocr_printed
@@ -107,25 +107,63 @@ def process_document(self, message: dict):
             persistence.update_document_status(document_id, "PROCESSING")
         )
         
-        # 1. Baixar PDF do S3
-        pdf_data = pdf_loader.download_pdf(object_key)
-        if not pdf_data:
-            raise Exception("Erro ao baixar PDF do S3")
+        # Determinar tipo de arquivo baseado no object_key ou content_type
+        content_type = message.get('content_type', '')
+        file_type = file_loader.get_file_type(object_key)
         
-        # Validar PDF
-        is_valid, error_msg = pdf_loader.validate_pdf(pdf_data)
-        if not is_valid:
-            raise Exception(f"PDF inválido: {error_msg}")
+        # Se não conseguir determinar pela extensão, tentar pelo content_type
+        if not file_type:
+            if 'pdf' in content_type.lower():
+                file_type = 'pdf'
+            elif any(img_type in content_type.lower() for img_type in ['png', 'jpeg', 'jpg', 'image']):
+                file_type = 'image'
         
-        # Verificar hash
-        calculated_hash = pdf_loader.calculate_sha256(pdf_data)
-        if calculated_hash != sha256:
-            logger.warning(f"Hash mismatch para {document_id}")
+        images = []
         
-        # 2. Rasterizar PDF
-        images = rasterizer.pdf_to_images(pdf_data)
-        if not images:
-            raise Exception("Nenhuma página encontrada no PDF")
+        if file_type == 'image':
+            # 1. Baixar imagem diretamente do S3
+            logger.info(f"Processando imagem: {object_key}")
+            img = file_loader.download_image(object_key)
+            if not img:
+                raise Exception("Erro ao baixar imagem do S3")
+            
+            # Validar imagem
+            file_data = file_loader.download_file(object_key)
+            if file_data:
+                is_valid, error_msg = file_loader.validate_image(file_data)
+                if not is_valid:
+                    raise Exception(f"Imagem inválida: {error_msg}")
+                
+                # Verificar hash
+                calculated_hash = file_loader.calculate_sha256(file_data)
+                if calculated_hash != sha256:
+                    logger.warning(f"Hash mismatch para {document_id}")
+            
+            # Imagem já está pronta, não precisa rasterizar
+            images = [img]
+            logger.info(f"Imagem carregada diretamente: {img.size}")
+            
+        else:
+            # 1. Baixar PDF do S3
+            logger.info(f"Processando PDF: {object_key}")
+            pdf_data = file_loader.download_pdf(object_key)
+            if not pdf_data:
+                raise Exception("Erro ao baixar PDF do S3")
+            
+            # Validar PDF
+            is_valid, error_msg = file_loader.validate_pdf(pdf_data)
+            if not is_valid:
+                raise Exception(f"PDF inválido: {error_msg}")
+            
+            # Verificar hash
+            calculated_hash = file_loader.calculate_sha256(pdf_data)
+            if calculated_hash != sha256:
+                logger.warning(f"Hash mismatch para {document_id}")
+            
+            # 2. Rasterizar PDF
+            images = rasterizer.pdf_to_images(pdf_data)
+            if not images:
+                raise Exception("Nenhuma página encontrada no PDF")
         
         # 3. Processar cada página
         all_fields = []
